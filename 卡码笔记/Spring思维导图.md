@@ -43,21 +43,33 @@
 
 ## 3、Spring AOP √
 
-#### 3.1、AOP
+### 3.1、AOP定义、目标、工作机制
 
-#### 3.2、常见通知类型
+### 3.2、AOP专业术语
+
+切面(Aspect) = 切入点(Pointcut) + 通知(Advice)
+
+### 3.2、AOP常见通知类型
 
 
 
 ## 4、Spring MVC √
 
-### 4.1、MVC
+### 4.1、M、V、C
 
-### 4.2、MVC的核心组件
+- MVC VS MVVM
 
-### 4.3、MVC的工作原理 / 核心流程
+### 4.2、MVC的工作流程（核心组件）
 
-### 4.4、统一异常处理
+#### （1）DispatcherServlet的地位（角色）、作用
+
+#### （2）配置MultipartResolver，实现文件上传和下载
+
+#### （3）@EnableWebMVC 提供的默认配置和高级特性
+
+- 全局异常处理：通过 `@ControllerAdvice` +`@ExceptionHandler ` 或 自定义 `HandlerExceptionResolver` 捕获和处理全局异常。
+
+#### （4）自定义WebMvcConfigurer
 
 
 
