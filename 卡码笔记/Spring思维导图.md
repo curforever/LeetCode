@@ -81,14 +81,41 @@
 
 ## 6、Spring 循环依赖
 
+- 循环依赖
+
+- @Lazy
+
+- spring.main.allow-circular-references=true
+
 
 
 ## 7、Spring 事务
+
+### 7.1、管理事务的方式
+
+### 7.2、事务传播行为
+
+### 7.3、事务隔离级别
+
+### 7.4、@Transactional(rollbackFor = Exception.class)注解
 
 
 
 ## 8、Spring Data JPA
 
+重要的是实战！
+
+- 如何使用 JPA 在数据库中非持久化一个字段？
+- JPA 的审计功能是做什么的？有什么用？
+- 实体之间的关联关系注解有哪些？
+
 
 
 ## 9、Spring Security
+
+### 9.1、控制请求访问权限的方法
+
+### 9.2、hasRole 和 hasAuthority 的区别
+
+- 如何对密码进行加密？
+- 如何优雅更换系统使用的加密算法？
