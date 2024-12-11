@@ -57,7 +57,7 @@
 
 ## 4、Spring MVC √
 
-### 4.1、M、V、C
+### 4.1、简介：M、V、C
 
 - MVC VS MVVM
 
@@ -72,6 +72,37 @@
 - 全局异常处理：通过 `@ControllerAdvice` +`@ExceptionHandler ` 或 自定义 `HandlerExceptionResolver` 捕获和处理全局异常。
 
 #### （4）自定义WebMvcConfigurer
+
+### 4.3、请求与响应
+
+#### （1）请求
+
+* 请求映射路径：@RequestMapping("/user/save")
+* 请求参数传递：@RequestParam
+  * http://localhost/commonParam?name=itcast&age=15
+  * 嵌套POJO参数：请求参数名与形参对象属性名相同，按照对象层次结构关系即可接收嵌套POJO属性参数
+  * JSON：@RequestBody
+    * @RequestBody与@RequestParam区别
+  * 日期：@DateTimeFormat
+    * Converter接口
+
+#### （2）响应
+
+* 响应json数据：@ResponseBody
+
+### 4.4、REST风格
+
+- @RequestMapping（@GetMapping @PostMapping @PutMapping @DeleteMapping）
+- @PathVariable
+- `@RequestBody`、`@RequestParam`、`@PathVariable`的区别和应用?
+- @RestController = @Controller + @ResponseBody
+- 其他
+  - @ModelAttribute
+  - @InitBinder
+
+### 4.5、SSM整合（注解版）
+
+### 4.6、拦截器
 
 
 
