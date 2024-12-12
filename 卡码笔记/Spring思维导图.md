@@ -1,8 +1,6 @@
 # Spring
 
-
-
-## 1、Spring 基础 √
+## 1、Spring 基础
 
 ### 1.1、Spring模块
 
@@ -21,7 +19,7 @@
 
 
 
-## 2、Spring IoC √
+## 2、Spring IoC
 
 ### 2.1、IoC和DI
 
@@ -29,19 +27,51 @@
 
 #### （1）Bean的**声明**注解
 
-- **@Component 和 @Bean** 的区别是什么？	
+@Component 和 @Bean 的区别是什么？	
 
 #### （2） Bean 的注入方式和注入注解
 
-- **@Autowired 和 @Resource** 的区别是什么？
+@Autowired 和 @Resource 的区别是什么？
 
 #### （3）Bean 的作用域（线程安全吗）
 
+自定义scope
+
 #### （4）Bean 的生命周期
 
+BeanPostProcessor接口
+
+初始化和销毁
+
+FactoryBean
+
+实例化的基本流程
+
+属性注入的三种情况
+
+循环依赖、三级缓存
+
+Aware接口
+
+#### （5）Bean的配置
+
+profile属性切换环境
+
+import标签
+
+alias标签
+
+自定义命名空间
+
+多线程与异步处理@Async
+
+#### （6）Bean后处理器
 
 
-## 3、Spring AOP √
+
+
+
+## 3、Spring AOP
 
 ### 3.1、AOP工作机制
 
@@ -55,7 +85,7 @@
 
 
 
-## 4、Spring MVC √
+## 4、Spring MVC
 
 ### 4.1、简介：M、V、C
 
@@ -104,9 +134,23 @@
 
 ### 4.6、拦截器
 
+### 4.7、异常处理机制
+
+（1）处理流程
+
+（2）处理方式
+
+- 注解方式
+  - @ControllerAdvice
+    - @ExceptionHandler、@InitBinder、@ModelAttribute 
+
+（3）机制原理
+
+（4）常用的异常解析器
 
 
-## 5、Spring 设计模式 √
+
+## 5、Spring 设计模式
 
 
 
@@ -150,3 +194,8 @@
 
 - 如何对密码进行加密？
 - 如何优雅更换系统使用的加密算法？
+
+
+
+
+
