@@ -1,54 +1,35 @@
 # Spring 基础
 
-### 包含的模块
+## Spring的核心模块/组件/容器
 
-### Spring vs SpringMVC vs SpringBoot
+- **spring-core**：Spring 框架基本的核心工具类。
+- **spring-beans**：提供对 bean 的创建、配置和管理等功能的支持。
+- **spring-context**：提供对国际化、事件传播、资源加载等功能的支持。
+- **spring-expression**：提供对表达式语言（Spring Expression Language） SpEL 的支持，只依赖于 core 模块，不依赖于其他模块，可以单独使用。
+
+## Spring、SpringMVC、SpringBoot的区别
+
+1. SpringFramework包含多个功能模块，其中最重要的是Spring-Core
+2. SpringMVC是多个功能模块之一，依赖于Spring-Core
+3. Spring简化了J2EE的开发，SpringBoot简化了Spring开发、简化了MVC的配置
 
 
 
 # 🍃Spring IoC
 
+## 控制反转 IoC
 
-
-## IoC与DI
-
-### 控制反转 IoC
-
-是【思想】：指将对象的创建、初始化及依赖管理的控制权从应用代码转移到 Spring 容器。
-
-#### 传统方式vsIoC方式
-
-- 传统方式： 对象由程序创建，依赖通过硬编码传递（代码写死而不是通过配置动态控制），高耦合。
-
-- IoC 方式： Spring 容器负责对象创建和依赖，模块之间只需要声明依赖，低耦合。
-
-#### IoC入门案例
+控制反转 IoC是【思想】：指将对象的创建、初始化及依赖管理的控制权从应用代码转移到 Spring 容器。
 
 - **导入和配置。** 导入坐标`spring-context`后新建配置文件`applicationContext.xml`并配置bean（包括id，class）
 - **获取IoC容器。** `new ClassPathXmlApplicationContext("applicationContext.xml")`
 - **获取bean。** `ctx.getBean("bookDao")`
 
-### 依赖注入 DI
+依赖注入 DI是【实现方式】：指容器根据配置将所需的依赖注入到对象中
 
-是【实现方式】：指容器根据配置将所需的依赖注入到对象中
-
-#### 注入什么类型
-
-- **简单类型（如int、String）**。用`<property>`标签的`value`属性
-- **引用类型**。用`<property>`标签的`ref`属性
-- **集合**。用`<property>`标签的`<array>``<list>``<set>``<map>``<props>`子标签
-
-#### 3种注入方式
+## 依赖注入DI（3种注入方式）
 
 1. Setter 注入
-2. 构造器注入（推荐）
-3. 自动装配（不推荐）
-
-
-
-## DI的3种注入方式
-
-1. Setter 注入。
 
    - 适用于可选依赖的注入、自己开发的模块的注入
 
@@ -56,7 +37,7 @@
 
    - 配置`<bean>`用`<property>`标签的`value`或`ref`属性。
 
-2. 构造器注入（推荐）。
+2. 构造器注入（推荐）
 
    - 适用于强制依赖的注入、第三方不含setter的模块的注入
 
@@ -76,7 +57,7 @@
 
 ## Bean 的作用域
 
-### Bean 的作用域和适用场景
+### 作用域及其适用场景
 
 **2基础作用域 + 4仅Web 应用可用：**
 
@@ -113,7 +94,7 @@ public class ShoppingCart {
 2. **使用`ThreadLocal`**: 将可变成员变量保存在 `ThreadLocal` 中，确保线程独立。
 3. **使用同步机制**: 利用 `synchronized` 或 `ReentrantLock` 来进行同步控制，确保线程安全。
 
-### ？如何配置和使用自定义的Scope
+### ？配置和使用自定义的Scope
 
 1. 实现 `org.springframework.beans.factory.config.Scope` 接口
 2. 使用 `CustomScopeConfigurer` 或 `ConfigurableBeanFactory` 注册自定义 Scope
@@ -128,9 +109,11 @@ public class ShoppingCart {
 1. **实例化：** 执行构造方法创建对象，分配内存
 2. **属性注入：** set操作
 3. **初始化** `implements InitializingBean` ，调用其 `afterPropertiesSet()` 方法。
-  1. `Aware` 接口的依赖注入
-  2. `BeanPostProcessor` 在初始化前后的处理
-  3. `InitializingBean` 和 `init-method` 的初始化操作
+
+   1. `Aware` 接口的依赖注入
+   2. `BeanPostProcessor` 在初始化前后的处理
+   3. `InitializingBean` 和 `init-method` 的初始化操作
+
 4. 使用bean执行业务操作
 5. **销毁** `implements DisposableBean` ，调用其 `destroy()` 方法。
 
@@ -140,15 +123,15 @@ public class ShoppingCart {
 
 - 
 
-### ？实例化的基本流程、FactoryBean
+#### ？实例化的基本流程、FactoryBean
 
 
 
-### ？属性注入的三种情况
+#### ？属性注入的三种情况
 
 
 
-### ？初始化`Aware` 接口的依赖注入
+#### ？初始化`Aware` 接口的依赖注入
 
 
 
@@ -166,11 +149,13 @@ public class ShoppingCart {
 
 ## 其他
 
-### 【声明Bean的注解】@Component 和 @Bean 的区别是什么？
+### @Component 和 @Bean 的区别是什么？
 
+声明Bean的注解
 
+### @Autowired 和 @Resource 的区别是什么？
 
-### 【注入Bean的注解】@Autowired 和 @Resource 的区别是什么？
+注入Bean的注解
 
 1. **`@Autowired`：** Spring 特有，默认**按类型（byType）** 自动注入。
    - 注解来源：Spring 特有，支持`@Autowired(required = false)`表示依赖项可选，即没有匹配到 Bean 时，不抛异常，而是注入 `null`。
@@ -179,20 +164,37 @@ public class ShoppingCart {
    - JSR-250 标准，更适合标准化和跨框架使用。
    - 如果未指定名称且没有匹配的 Bean，会按类型注入。
 
+### ？profile属性切换环境
 
+### ？import标签
+
+### ？alias标签
+
+### ？自定义命名空间
+
+### ？多线程与异步处理@Async
 
 
 
 # 🍃Spring AOP
 
-## 谈谈对AOP的理解
+## AOP定义、目标、工作机制
 
-- AOP专业术语：切面(Aspect) = 切入点(Pointcut) + 通知(Advice)
-- AOP工作机制
 
-- 区别：Spring AOP vs Aspect AOP
+
+## AOP专业术语
+
+切面(Aspect) = 切入点(Pointcut) + 通知(Advice)
+
+
+
+## Spring AOP和Aspect AOP的区别
+
+
 
 ## AOP常见的通知类型
+
+
 
 ## 多个切面的执行顺序如何控制
 
@@ -200,31 +202,35 @@ public class ShoppingCart {
 
 # 🍃Spring MVC
 
-## 谈谈对SpringMVC的理解
+## 简介：M、V、C
 
-简介：M、V、C
+## MVC和MVVM的区别
 
-MVC VS MVVM
+## MVC的工作流程/原理/核心组件
 
-## MVC的工作流程、MVC的工作原理、MVC的核心组件
+### DispatcherServlet的地位（角色）、作用
 
-DispatcherServlet的地位（角色）、作用
+### 配置MultipartResolver实现文件上传和下载
 
-配置MultipartResolver，实现文件上传和下载
-
-@EnableWebMVC 提供的默认配置和高级特性
+### @EnableWebMVC 提供的默认配置和高级特性
 
 - 全局异常处理：通过 `@ControllerAdvice` +`@ExceptionHandler ` 或 自定义 `HandlerExceptionResolver` 捕获和处理全局异常。
 
-自定义WebMvcConfigurer
-
-请求与响应
-
-REST风格
+### 自定义WebMvcConfigurer
 
 
 
-## SSM整合（注解版）
+## REST风格
+
+- @RequestMapping（@GetMapping @PostMapping @PutMapping @DeleteMapping）
+- @PathVariable
+- `@RequestBody`、`@RequestParam`、`@PathVariable`的区别和应用?
+- @RestController = @Controller + @ResponseBody
+- 其他
+  - @ModelAttribute
+  - @InitBinder
+
+## SSM整合
 
 
 
@@ -299,11 +305,19 @@ REST风格
 
 # Spring 事务
 
+
+
 ## 管理事务的方式
+
+
 
 ## 事务传播行为
 
+
+
 ## 事务隔离级别
+
+
 
 ## @Transactional(rollbackFor = Exception.class)注解
 
