@@ -44,12 +44,35 @@
 ## Spring、SpringMVC、SpringBoot的区别
 
 1. Spring（SpringFramework）：包含多个核心模块、简化了J2EE的开发
-2. SpringMVC：多个功能模块之一，依赖于spring-Core
+2. SpringMVC：多个功能模块之一，基于Spring提供的IoC、AOP 等功能来实现 Web 层的处理
 3. SpringBoot：自动配置常用Spring模块，简化初始化和配置工作。
 
 
 
----
+## 说说 Spring 启动过程？
+
+1. **加载配置文件，初始化容器**
+   读取配置文件（如 XML 配置文件、Java Config 类等），包括配置数据库连接、事务管理、AOP 配置等。
+
+2. **实例化容器**
+
+   根据配置文件中的信息创建容器 ApplicationContext，在容器启动阶段实例化 BeanFactory，并加载容器中的 BeanDefinitions。
+
+3. **解析 BeanDefinitions**
+
+   Spring 容器会解析配置文件中的 BeanDefinitions，即声明的 Bean 元数据，包括 Bean 的作用域、依赖关系等信息。
+
+4. **Bean的生命周期**
+
+   1. 实例化 Bean
+   2. 依赖注入
+   3. 初始化
+
+5. **发布事件**
+
+   Spring 可能会在启动过程中发布一些事件，比如容器启动事件。
+
+6. **完成启动**
 
 
 
@@ -105,6 +128,46 @@
 
 
 
+### @PropertySource 注解的作用是什么？ 
+
+**加载外部配置文件**：`@PropertySource` 可以加载指定路径的 `.properties` 文件，将其内容注入到 Spring 的 `Environment` 中，方便通过 `@Value` 或 `Environment` 对象获取属性值。
+
+
+
+#### Spring中的@Value注解的作用是什么？ 
+
+1. **配置文件注入：**将属性文件中的值注入到 Bean 中。
+2. **系统属性和环境变量：**将系统属性或环境变量的值注入到 Bean 中。
+3. **默认值设置：**在属性不可用时，提供默认值。
+
+
+
+#### 结合 `Environment` 使用
+
+除了使用 `@Value` 注解之外，Spring 还可以通过 `Environment` 对象获取属性文件中的属性值。`Environment` 提供了一种更加灵活的方式来访问属性，并支持对属性的存在进行检查。
+
+```java
+@Configuration
+@PropertySource("classpath:application.properties")
+public class AppConfig {
+
+    @Autowired
+    private Environment env;
+
+    @Bean
+    public DataSource dataSource() {
+        DataSource dataSource = new DataSource();
+        dataSource.setUrl(env.getProperty("db.url"));
+        dataSource.setUsername(env.getProperty("db.username"));
+        return dataSource;
+    }
+}
+```
+
+
+
+## Bean的配置
+
 ### 自动装配的4种方式
 
 1. no（默认）：不自动装配，需要显式地定义依赖。 
@@ -114,25 +177,132 @@
 
 
 
-### 【自动装配】@Qualifier和@Primary的区别
+### @Qualifier和@Primary的区别
 
-- @Qualifier在依赖注入时**消除歧义**，当一个类型有多个实现时，可以通过 @Qualifier 指定名称选择对应的实现 Bean。
+都是解决 Bean 注入时的歧义问题，即当一个接口有多个实现时Spring 无法确定该注入哪个具体的 Bean
 
-- @Primary 注解用于指定当有多个候选 Bean 时默认注入哪个 Bean，也就是指定了第一顺位。
+- @Qualifier指定名称选择对应的实现 Bean。
 
-- 当结合 @Qualifier 使用时，可以覆盖 @Primary 的默认行为。
+- @Primary 指定默认注入哪个 Bean。
+
+-  @Qualifier 可以覆盖 @Primary 的默认行为。
 
 
 
-
-
-## Bean注册到容器的4种方式
+### Bean注册到容器的4种方式
 
 1. 基于 XML 的配置
 
 2. 基于 `@Component` 注解及其衍生注解 `@Component`、`@Service` 、`@Controller`、`@Repository` 
 3. 基于 `@Configuration`声明配置类 和 `@Bean` 定义 Bean
 4. 基于 `@Import` 注解将普通类导入到 Spring 容器中，这些类会自动被注册为 Bean。
+
+
+
+### @Component 和 @Bean 的区别是什么？
+
+@Bean 
+
+- 方法级别（在 `@Configuration` 类中）
+- 需手动注册
+- 用于手动创建复杂的对象、第三方库或无法修改的类
+- 更灵活，适合复杂初始化。
+
+@Component
+
+- 类级别
+- 支持自动扫描（ `@ComponentScan` ）
+- 用于自定义类
+- 自动化更强，适合类的简单注册
+
+
+
+### @Component、@Controller、@Repository和@Service 的区别？ 
+
+其它三个都是 `@Component` 的衍生注解，目的是更好地组织管理应用的各个层次，提高代码可读性。
+
+- **`@Component`**：通用注解，用于没有明确职责的类或通用组件，比如工具类、任务调度器等。
+- **`@Controller`**：处理 Web 层请求。
+- **`@Service`**：处理服务层逻辑。
+- **`@Repository`**：处理持久层数据访问对象。
+  - **异常转换**简化异常处理流程：@Repository 注解会自动将**低层次的数据库异常（如 SQLException）**转换为 **Spring 统一的 DataAccessException**。
+
+
+
+### @Profile 注解的作用是什么？
+
+@Profile 用于定义一组 Bean 的配置文件所属的环境，比如 dev 通常表示开发环境，prod 表示生产环境。
+
+```java
+@Configuration
+@Profile("dev") // 这个配置类只在 "dev" profile激活时加载
+public class DevConfig {
+    @Bean
+    public DataSource dataSource() {
+        // 返回开发环境的DataSource
+        return new EmbeddedDatabaseDataSource();
+    }
+}
+
+@Configuration
+@Profile("prod") // 这个配置类只在 "prod" profile激活时加载
+public class ProdConfig {
+    @Bean
+    public DataSource dataSource() {
+        // 返回生产环境的DataSource
+        return new SomeProductionDataSource();
+    }
+}
+```
+
+```shell
+java -jar yourapp.jar --spring.profiles.active=prod
+```
+
+
+
+### @Conditional 注解的作用是什么？ 
+
+**主要作用**
+
+- **有条件地加载 Bean**：`@Conditional` 根据某个条件来决定某个 Bean 是否需要注入到 Spring 容器中。条件可以是操作系统类型、类路径是否存在某个类、某个属性的值等。
+- **实现动态配置**：可以根据环境（如开发、测试、生产）或特定上下文条件动态装配 Bean，避免不必要的 Bean 被加载。
+
+**使用场景**
+
+- 在不同的操作系统或环境中注入不同的 Bean。
+- 根据应用程序的配置文件、属性值来动态启用某些功能。
+- 在条件满足时，才装配某些依赖或服务。
+
+**常见的内置条件**
+
+- `@ConditionalOnProperty` 用于根据配置文件中的某个属性值来决定是否装配 Bean。常用于启用或禁用某些功能模块。
+- `@ConditionalOnClass` 用于判断类路径中是否存在某个类。如果存在，则装配相应的 Bean。
+- `@ConditionalOnMissingBean` 用于当容器中不存在某个类型的 Bean 时，才注册当前的 Bean。可以用来避免重复注册 Bean。
+- `@ConditionalOnBean` 的作用与 `@ConditionalOnMissingBean` 相反，用于当容器中存在某个类型的 Bean 时，才装配当前的 Bean。
+
+```java
+// 自定义条件类
+public class OnLinuxCondition implements Condition {
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        return System.getProperty("os.name").contains("Linux");
+    }
+}
+```
+
+```java
+// 在配置类中使用
+@Configuration
+public class AppConfig {
+
+    @Bean
+    @Conditional(OnLinuxCondition.class)
+    public MyService myService() {
+        return new MyService();
+    }
+}
+```
 
 
 
@@ -179,9 +349,12 @@ public class ShoppingCart {
 
 解决：
 
-1. **避免可变成员变量**: 尽量设计 Bean 为无状态。
-2. **使用`ThreadLocal`**: 将可变成员变量保存在 `ThreadLocal` 中，确保线程独立。
-3. **使用同步机制**: 利用 `synchronized` 或 `ReentrantLock` 来进行同步控制，确保线程安全。
+1. **避免在单例 Bean 中使用可变状态**
+2. **使用 `@Scope("prototype")`**：对于有状态的 Bean，Spring 提供了原型作用域（`prototype`），每次请求都会创建一个新的 Bean 实例，从而避免共享同一个实例带来的并发问题。
+3. **加锁**: 利用 `synchronized` 或 `ReentrantLock` 来进行同步控制。
+4. **使用`ThreadLocal`**保存变量
+
+
 
 ### ❓配置和使用自定义的Scope
 
@@ -273,15 +446,22 @@ public class ShoppingCart {
 
 ### ❓初始化方法的执行顺序
 
-1）BeanPostProcessor#postProcessBeforeInitialization
+1. BeanPostProcessor#postProcessBeforeInitialization
+2. **@PostConstruct**：该方法会在 Bean 的依赖注入完成之后被调用。
+3. afterPropertiesSet：实现 InitializingBean 接口的 afterPropertiesSet 方法会在 @PostConstruct 方法之后被调用。
 
-2）@PostConstruct：标注在方法上的 @PostConstruct 注解会在 Bean 的属性设置完成之后立即被调用。
+4. initMethod：在 xml 和 @Bean 注解里，都可以通过 initMethod 执行初始化方法。
 
-3）afterPropertiesSet：实现 InitializingBean 接口的 afterPropertiesSet 方法会在 @PostConstruct 方法之后被调用。
+5. BeanPostProcessor#postProcessAfterInitialization。
 
-4）initMethod：在 xml 和 @Bean 注解里，都可以通过 initMethod 执行初始化方法。
 
-5）BeanPostProcessor#postProcessAfterInitialization。
+
+### @PostConstruct 和 @PreDestroy 注解的作用是什么？
+
+- **`@PostConstruct`**：当依赖注入完成后，在 Bean 初始化完成后调用。常用于设置默认值、检查依赖。
+- **`@PreDestroy`**：在 Bean 即将被销毁时调用。常用于进行资源释放（关闭数据库连接、文件句柄、线程池）、会话管理（清理用户会话或缓存）。
+  - 对于单例（`singleton`）作用域的 Bean，会在容器关闭时调用；
+  - 对于原型（`prototype`）作用域的 Bean，不会调用销毁方法，因为容器不管理其生命周期。
 
 
 
@@ -329,9 +509,7 @@ public class ShoppingCart {
 
 ## 其他
 
-### @Component 和 @Bean 的区别是什么？
 
-声明Bean的注解
 
 ### @Autowired 和 @Resource 的区别是什么？
 
@@ -344,7 +522,7 @@ public class ShoppingCart {
    - JSR-250 标准，更适合标准化和跨框架使用。
    - 如果未指定名称且没有匹配的 Bean，会按类型注入。
 
-### ？profile属性切换环境
+### 
 
 ### ？import标签
 
@@ -467,9 +645,9 @@ Spring Framework 默认使用的动态代理是 JDK 动态代理，SpringBoot 2.
 
 ## M、V、C
 
-- **Model（模型）：** 处理业务逻辑和数据，负责状态管理。
-- **View（视图）：** 展示数据给用户，负责用户界面。
-- **Controller（控制器）：** 接收用户输入，协调 Model 和 View 的交互。
+- **Model（模型）：** 负责封装数据，可以是 POJO、DTO 或者其他形式的对象。
+- **View（视图）：** 负责展示数据，通常是 JSP、Thymeleaf、Freemarker 等模板引擎。
+- **Controller（控制器）：** 处理用户的请求，调用服务层处理业务逻辑，最终返回数据和视图。
 
 
 
@@ -503,12 +681,13 @@ Spring Framework 默认使用的动态代理是 JDK 动态代理，SpringBoot 2.
 
 
 
-### MVC的核心组件
+## MVC的核心组件
 
-- **`DispatcherServlet`**：**中央处理器**，是一个 Servlet，负责接收 HTTP 请求并调度请求到适当的处理器。
+- **`DispatcherServlet`**：**前端控制器**，是一个 Servlet，负责接收 HTTP 请求并调度请求到适当的处理器。
 - **`HandlerMapping`**：**处理器映射器**，根据 URL 去匹配查找能处理的 `Handler` ，并会将请求涉及到的拦截器和 `Handler` 一起封装。
   - `@Controller` 用于标记控制器类
   - `@RequestMapping` 用于定义控制器类中的方法与 URL 请求的映射关系
+- **HandlerInterceptor（拦截器）**：在请求处理的各个阶段拦截 HTTP 请求和响应，可以在控制器执行前后添加自定义逻辑，如日志记录、权限检查等。
 - **`HandlerAdapter`**：**处理器适配器**，根据 `HandlerMapping` 找到的 `Handler` ，适配执行对应的 `Handler`；
   - `@RequestParam` 用于获取请求参数
   - `@PathVariable` 用于获取 URL 中的路径变量
@@ -517,7 +696,7 @@ Spring Framework 默认使用的动态代理是 JDK 动态代理，SpringBoot 2.
 
 
 
-## MVC和MVVM的区别
+### MVC和MVVM的区别
 
 |   **特性**   |                  **MVC**                   |                 **MVVM**                 |
 | :----------: | :----------------------------------------: | :--------------------------------------: |
@@ -528,15 +707,49 @@ Spring Framework 默认使用的动态代理是 JDK 动态代理，SpringBoot 2.
 
 
 
+### MVC与WebFlux的区别
+
+**Spring WebFlux**：
+
+- **异步非阻塞框架**：Spring WebFlux 是 Spring 5 引入的响应式 Web 框架，旨在支持异步非阻塞编程模型。
+- **基于 Reactor**：WebFlux 基于 Reactor 库，支持响应式流（Reactive Streams）规范，使用 Mono 和 Flux 来表示单个和多个异步序列。
+- **适用于高并发**：WebFlux 适用于需要处理大量并发请求的场景，如实时数据流和高负载应用。
+
+**Spring MVC**：
+
+- **同步阻塞框架**：Spring MVC 是一个基于 Servlet 的传统 Web 框架，使用同步阻塞模型处理请求。
+- **基于 Servlet API**：Spring MVC 使用标准的 Servlet API，通常每个请求对应一个线程。
+- **广泛应用**：Spring MVC 适用于大多数 Web 应用，特别是传统的 CRUD 操作和企业应用。
+
+**适用场景**：
+
+- **Spring MVC：适用于 I/O 操作较少、请求数相对较少的应用。**
+- **Spring WebFlux：适用于 I/O 操作频繁、高并发、低延迟的应用。**
+
+
+
 ### 拦截器（Interceptor）
 
-拦截器比过滤器更具灵活性，常见的应用场景包括日志记录、用户认证、权限校验等。
+#### 拦截器的主要作用
 
-1. **`preHandle()`**：在控制器方法执行之前调用。如果该方法返回 `false`，请求将被拦截，不会进入控制器方法。
-2. **`postHandle()`**：在控制器方法执行之后，视图渲染之前调用。可以用于修改模型数据或视图。
-3. **`afterCompletion()`**：在视图渲染完成后调用，用于清理资源或记录执行时间等。
+拦截器（Interceptor）用于在请求处理流程的不同阶段拦截 HTTP 请求和响应，并对其进行预处理或后处理。
 
-#### Spring拦截链的实现
+- **权限验证**：在用户请求到达控制器之前，可以通过拦截器检查用户是否有权限访问某个资源。
+- **日志记录**：拦截器可以记录每次请求的日志信息，如请求的 URL、用户 IP、请求耗时等。
+- **性能监控**：通过 `preHandle()` 和 `afterCompletion()` 记录请求的开始和结束时间，可以计算请求的处理时长。
+- **全局异常处理**：拦截器可以捕获控制器中抛出的异常，并在 `afterCompletion()` 中处理。
+
+#### 拦截器的实现
+
+**实现 `HandlerInterceptor` 接口**：自定义的拦截器需要实现 `HandlerInterceptor` 接口，并重写其三个核心方法：
+
+- `preHandle()`：请求到达控制器之前的预处理。
+- `postHandle()`：控制器执行之后但视图渲染之前的后处理。
+- `afterCompletion()`：整个请求结束之后的回调。
+
+**注册拦截器**：通过 `WebMvcConfigurer` 或 `xml` 配置来注册拦截器，并指定拦截的路径。
+
+#### 拦截链的实现
 
 - **定义：**在 Spring 中，拦截链通常指的是一系列拦截器（如 AOP 切面、过滤器、拦截器等）依次作用于请求或方法调用，实现如日志记录、权限控制、事务管理等。
 
@@ -550,57 +763,417 @@ Spring Framework 默认使用的动态代理是 JDK 动态代理，SpringBoot 2.
 
   - **AOP 拦截链（切面）**：Spring AOP 提供的方法级别的拦截，通过定义切面（Aspect）可以实现方法的前后处理。切面中的 `@Before`、`@After`、`@Around` 等注解用于控制拦截的执行顺序。
 
+#### 拦截器和过滤器的区别
 
+**相同点**
 
-### DispatcherServlet的地位（角色）、作用
+- 都是用于拦截 HTTP 请求。
+- 都可以在请求处理之前和之后执行逻辑。
 
-### 配置MultipartResolver实现文件上传和下载
+**不同点**
 
-### @EnableWebMVC 提供的默认配置和高级特性
-
-- 全局异常处理：通过 `@ControllerAdvice` +`@ExceptionHandler ` 或 自定义 `HandlerExceptionResolver` 捕获和处理全局异常。
-
-### 自定义WebMvcConfigurer
-
-
-
-## ❓MVC中的表单处理和数据绑定
-
-**数据绑定**：通过 `@ModelAttribute` 注解，Spring 自动将表单数据绑定到模型对象上，并将其传递给控制器方法。
-
-**表单校验**：通过 `@Valid` 和 `BindingResult` 可以在处理表单数据之前进行数据验证，Spring MVC 集成了 JSR 303/JSR 380 Bean Validation 来进行数据校验。
+- **拦截器**：依赖于 Spring MVC 的框架，通过 `HandlerInterceptor` 实现，可以访问控制器的对象和返回的数据模型。它主要用于处理应用程序级别的逻辑，如日志记录、权限验证等。
+- **过滤器（Filter）**：是 Servlet 规范中的一部分，拦截的是所有的 HTTP 请求，不依赖于 Spring。它通常用于处理全局的任务，如跨域请求处理（CORS）、编码转换等。
 
 
 
-## ❓MVC的异常处理机制
+### 视图解析器（ViewResolver）
 
-**全局异常处理**：通过 `@ControllerAdvice` 和 `@ExceptionHandler` 注解可以定义全局异常处理器，捕获应用中抛出的异常，并进行统一的异常处理。
+负责将逻辑视图名称解析为实际的视图对象（如 JSP、Thymeleaf、FreeMarker 模板等）。
 
-1. 处理流程
+**工作流程：**
 
-2. 处理方式
-   - 注解方式
-     - @ControllerAdvice
-       - @ExceptionHandler、@InitBinder、@ModelAttribute 
+- 接收视图名称：控制器返回一个逻辑视图名称。
+- 视图解析：视图解析器根据逻辑视图名称和配置，解析并找到实际的视图文件。
+- 渲染视图：将模型数据传递给视图对象，由视图对象生成最终的 HTML 响应。
 
+**常见的视图解析器实现：**
 
-3. 机制原理
+- InternalResourceViewResolver：用于解析 JSP 文件视图。
+- ThymeleafViewResolver：用于解析 Thymeleaf 模板视图。
+- FreeMarkerViewResolver：用于解析 FreeMarker 模板视图。
 
-4. 常用的异常解析器
+**视图解析器相关配置：**
 
-
-
-## REST风格
-
-- @RequestMapping（@GetMapping @PostMapping @PutMapping @DeleteMapping）
-- @PathVariable
-- `@RequestBody`、`@RequestParam`、`@PathVariable`的区别和应用?
-- @RestController = @Controller + @ResponseBody
-- 其他
-  - @ModelAttribute
-  - @InitBinder
+- 优先级：可以配置多个视图解析器，通过 order 属性设置解析器的优先级。
+- 默认视图：可以指定默认视图解析器，当找不到匹配的视图名称时使用。
 
 
+
+## MVC表单数据的绑定和校验
+
+### 表单数据绑定和校验简介
+
+**表单数据绑定**：
+
+- `@ModelAttribute` 注解可以自动将表单中的字段与 Java **对象**的属性进行绑定，通常用于处理复杂的表单提交。
+- `@RequestParam` 注解用于处理表单中**单个**字段的数据。对于简单的表单，可以使用该注解从请求中获取参数值。
+- `@RequestBody`，如果表单数据是以 **JSON** 格式提交的，可以使用 @RequestBody 注解将请求体中的 JSON 数据映射为 Java 对象。
+
+**表单数据校验**：
+
+- `@Valid` 注解用于触发表单对象的验证，`BindingResult` 用于检查验证结果。如果表单验证失败，控制器可以根据错误结果返回错误页面。
+
+- 定义表单验证规则:Spring MVC 支持使用 JSR-303/JSR-380 注解（如 `@NotNull`、`@Size`、`@Email` 等）在模型类中定义表单字段的验证规则。
+
+  ```java
+  // User 类的 name 字段被要求不能为空且长度在 2 到 30 个字符之间，age 字段必须至少为 18。
+  public class User {
+  
+      @NotNull(message = "Name cannot be null")
+      @Size(min = 2, max = 30, message = "Name must be between 2 and 30 characters")
+      private String name;
+  
+      @Min(value = 18, message = "Age must be at least 18")
+      private int age;
+  
+      // getters and setters
+  }
+  ```
+
+  
+
+
+
+### @ModelAttribute 注解的作用是什么？ 
+
+- **用于方法参数**：`@ModelAttribute` 注解可以用于控制器方法的参数上，表示将请求中的参数绑定到某个对象上，并将其添加到模型（`Model`）中，便于在视图层访问。处理表单提交时，将多个请求参数绑定到一个对象。
+- **用于方法级别**：`@ModelAttribute` 注解也可以用在控制器方法上，表示在执行任何控制器方法之前，先运行带有该注解的方法，用来为视图模型添加预处理的数据。准备通用的模型数据（如下拉列表、表单数据等），以便在视图中共享这些数据。
+
+#### @ModelAttribute 和 @RequestParam 的区别
+
+都用于从请求中提取数据。
+
+- **`@ModelAttribute`**：用于绑定复杂对象，将请求参数映射到 Java 对象中。适用于处理表单提交和对象映射。
+- **`@RequestParam`**：用于绑定简单类型的请求参数（如 `String`、`int` 等），适合处理单个请求参数。
+
+#### @ModelAttribute 与 @RequestBody 的区别
+
+- `@ModelAttribute` 是基于传统的表单参数和 URL 请求参数进行数据绑定。
+- `@RequestBody` 是用于处理 HTTP 请求体中的 JSON 或 XML 数据。
+
+
+
+### @Validated 和 @Valid 注解有什么区别？
+
+- **`@Valid`**：用于标准的 Java Bean 验证，适用于单一对象或嵌套对象，不能支持分组验证。
+  - 在表单提交时，验证输入的用户数据是否符合要求。
+  - 在 API 请求中，验证请求体的参数格式是否正确。
+- **`@Validated`**：Spring 提供的注解，支持分组验证，允许根据不同的场景执行不同的验证逻辑。
+  - 需要在不同场景下执行不同的验证规则，如创建时要求所有字段必须提供，而更新时可能只需要验证部分字段。（结合groups = XX.class）
+
+```java
+// 创建用户时，只需要验证 name 字段。
+// 更新用户时，需要验证 id 字段是否存在。
+
+public class User {
+
+    public interface Create {}
+    public interface Update {}
+
+    @NotNull(groups = Create.class, message = "Name cannot be null")
+    @Size(min = 2, max = 30, message = "Name must be between 2 and 30 characters")
+    private String name;
+
+    @NotNull(groups = Update.class, message = "ID cannot be null for update")
+    private Long id;
+
+    // getters and setters
+}
+
+@RestController
+public class UserController {
+
+    @PostMapping("/users")
+    public ResponseEntity<String> createUser(@Validated(User.Create.class) @RequestBody User user, BindingResult result) {
+        if (result.hasErrors()) {
+            return new ResponseEntity<>(result.getAllErrors().toString(), HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>("User created successfully", HttpStatus.OK);
+    }
+
+    @PutMapping("/users")
+    public ResponseEntity<String> updateUser(@Validated(User.Update.class) @RequestBody User user, BindingResult result) {
+        if (result.hasErrors()) {
+            return new ResponseEntity<>(result.getAllErrors().toString(), HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>("User updated successfully", HttpStatus.OK);
+    }
+}
+```
+
+
+
+
+
+## MVC的异常处理机制
+
+- **局部异常处理 - `@ExceptionHandler` 注解**：用于局部的异常处理，通常定义在控制器类中。它可以捕获特定的异常，并返回自定义的错误信息或视图。
+
+- **全局异常处理 - `@ControllerAdvice`**：应用于所有的控制器。通过这个注解，可以定义全局的异常处理逻辑，避免在每个控制器中重复编写相同的异常处理代码。
+
+
+
+### 局部异常处理 @ExceptionHandler
+
+**使用步骤**：
+
+- 在控制器类中定义处理异常的方法。
+- 使用 `@ExceptionHandler` 指定要捕获的异常类型。
+- 可以返回自定义的视图或 JSON 响应。
+
+```java
+// 该方法可以处理 UserNotFoundException 和 InvalidUserException 两种类型的异常。
+@ExceptionHandler({UserNotFoundException.class, InvalidUserException.class})
+public String handleMultipleExceptions(Exception ex, Model model) {
+    model.addAttribute("errorMessage", ex.getMessage());
+    return "errorPage";
+}
+```
+
+
+
+
+
+### 全局异常处理 @ControllerAdvice
+
+通过 `@ControllerAdvice` 和 `@ExceptionHandler` 注解可以定义全局的异常处理方法，适用于所有控制器。
+
+**使用步骤**：
+
+- 创建一个类并使用 `@ControllerAdvice` 注解标记。
+- 在该类中定义带有 `@ExceptionHandler` 注解的方法，用于捕获异常。
+- 全局异常处理类会捕获应用中所有控制器抛出的异常。
+
+```java
+// 在这个例子中，GlobalExceptionHandler 可以处理所有控制器中抛出的异常，包括 UserNotFoundException 和其他类型的异常。
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleGlobalException(Exception ex) {
+        return new ResponseEntity<>("Global error: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<String> handleUserNotFoundException(UserNotFoundException ex) {
+        return new ResponseEntity<>("User not found: " + ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+}
+```
+
+
+
+### 局部与全局异常处理的优先级
+
+- **局部异常处理**：当控制器类中有 `@ExceptionHandler` 注解的方法时，Spring 会优先调用该局部异常处理方法。
+- **全局异常处理**：如果没有找到局部的异常处理方法，Spring 会调用全局的异常处理器（`@ControllerAdvice`）。
+
+
+
+### 异常处理与 RESTful API（`@ResponseStatus` 、 `@ResponseEntity` ）
+
+在处理异常时，可以使用 `@ResponseStatus` 注解或 `ResponseEntity` 来设置 HTTP 响应状态码。
+
+@ResponseStatus用于定义一个方法或者异常类所对应的 HTTP 状态码和原因短语。
+
+```java
+@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "面试鸭未找到")
+public class UserNotFoundException extends RuntimeException {
+}
+```
+
+在 RESTful API 中，`@ExceptionHandler` 常用于返回 `400 Bad Request` 或 `500 Internal Server Error` 等状态码，通知客户端具体的错误类型。开发者可以自定义响应结构 `ResponseEntity` 来返回标准化的错误格式，如 `{"error": "User not found"}`。
+
+```java
+// 自定义响应结构 `ResponseEntity` 
+@ExceptionHandler(UserNotFoundException.class)
+@ResponseBody
+public ResponseEntity<?> handleUserNotFoundException(UserNotFoundException ex) {
+    Map<String, String> errorResponse = new HashMap<>();
+    errorResponse.put("error", "Mianshiya User not found");
+    errorResponse.put("message", ex.getMessage());
+    return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+}
+```
+
+```json
+// 此时，客户端会收到类似这样的 JSON 响应
+{
+    "error": "Mianshiya User not found",
+    "message": "The user with ID 123 was not found"
+}
+```
+
+
+
+## Rest风格
+
+REST（Representational State Transfer, （资源的）表述性状态转移）是一种**无状态**的架构风格，用 URL 定位资源，用 HTTP 动词来描述所要做的操作，使得客户端和服务器之间的交互更加简单、清晰和高效。
+
+**@RequestMapping（@GetMapping @PostMapping @PutMapping @DeleteMapping）**
+
+```
+假设有一个用户资源，URI 为 /users，RESTful API 设计如下：
+    GET /users：获取所有用户。
+    GET /users/{id}：获取指定 ID 的用户。
+    POST /users：创建新用户。
+    PUT /users/{id}：更新指定 ID 的用户。
+    DELETE /users/{id}：删除指定 ID 的用户。
+```
+
+**幂等性**
+
+RESTful API 中的操作应尽量遵循幂等性原则。幂等操作的含义是，无论请求执行多少次，其结果应该相同。
+
+- **GET**、**PUT**、**DELETE**：这些操作应该是幂等的。
+- **POST**：通常是非幂等的，因为每次调用 POST 可能都会创建新的资源。
+
+
+
+### @RequestBody 和 @ResponseBody 注解的作用是什么？ 
+
+都是用于处理 HTTP 请求和响应的两个常用注解：
+
+- **`@RequestBody`**：将 **HTTP 请求体中的数据**绑定到**方法参数**上。Spring 会将 JSON、XML 或其他格式的请求体映射为 Java 对象。
+
+- **`@ResponseBody`**：将**Controller方法的返回结果**直接写入 **HTTP 响应体**中。通常用于返回 JSON 或 XML 格式的数据，而不是视图页面。
+  - `@RestController` 是 `@Controller` 和 `@ResponseBody` 的组合注解，表示该类的所有控制器方法都默认返回 JSON 或 XML 数据，而不需要为每个方法单独加 `@ResponseBody`。
+- Spring 根据请求头中的 `Content-Type`、响应头中的 `Accept`，选择合适的消息转换器（`HttpMessageConverter`），实现 JSON和 Java 对象的相互转换。
+
+
+
+### @RequestHeader 、 @CookieValue 、@SessionAttribute
+
+@RequestHeader 注解用于提取 HTTP 请求头中的值，并将其注入到控制器方法的参数中。例如访问 Accept、Content-Type、User-Agent 等请求头信息。
+
+```java
+@GetMapping("/header-info")
+public String getHeaderInfo(@RequestHeader("User-Agent") String userAgent) {
+    // 使用 userAgent 进行业务处理
+    return "headerInfoView";
+}
+
+```
+
+@CookieValue 注解用于从 HTTP 请求的 Cookie 中提取值，并将其注入到控制器方法的参数中。
+
+```java
+@GetMapping("/cookie-info")
+public String getCookieInfo(@CookieValue("sessionId") String sessionId) {
+    // 使用 sessionId 进行业务处理
+    return "cookieInfoView";
+}
+```
+
+@SessionAttribute 是 Spring MVC 中的注解，用于从当前 HTTP 会话（Session）中获取属性值并将其绑定到控制器方法的参数上，而无需手动从 HttpSession 获取。
+
+```java
+// Spring 从会话中提取名为 "loggedInUser" 的属性值，并将其绑定到 User 对象中，传递给控制器方法。
+@GetMapping("/profile")
+public String getUserProfile(@SessionAttribute("loggedInUser") User user) {
+    return "User Profile: " + user.getName();
+}
+```
+
+`@SessionAttribute` 不能像 `@RequestParam` 或 `@RequestHeader` 那样直接设置默认值。如果指定的会话属性在当前会话中不存在，Spring 将抛出异常。如果需要处理这种情况，可以结合 `HttpSession` 来手动检查会话中的属性。
+
+```java
+@GetMapping("/checkout")
+public String checkout(HttpSession session, Model model) {
+    ShoppingCart cart = (ShoppingCart) session.getAttribute("cart");
+    if (cart == null) {
+        // 如果 session 中没有 cart 属性，可以设置一个默认值
+        cart = new ShoppingCart();
+        session.setAttribute("cart", cart);
+    }
+    model.addAttribute("cart", cart);
+    return "checkout";
+}
+```
+
+`@SessionAttributes` 和 `@SessionAttribute` 都用于管理会话中的属性，但它们的应用场景和使用方式不同。
+
+- **`@SessionAttributes`**：用于将模型中的某些属性暂时保存到会话中，常用于**表单分步骤处理**的场景。它是**类级别**的注解。
+- **`@SessionAttribute`**：用于从当前会话中获取某个已存在的属性，适用于**已经存在于会话中的数据**。
+
+
+
+### @PathVariable 注解的作用是什么？ 
+
+- @PathVariable 在处理 HTTP 请求时，从请求的 URL 路径中捕获变量，并将其绑定到控制器方法的参数上。
+
+```java
+@GetMapping("/users/{id}")
+public String getUserById(@PathVariable(name = "id", required = false) Long id) {
+    if (id == null) {
+        return "No user ID provided";
+    }
+    return "User ID: " + id;
+}
+```
+
+
+
+**扩展知识：**
+
+- **可选：**Spring 允许使用 `required = false` 标记路径变量为可选。如果路径变量缺失，Spring 将不会抛出异常。.
+
+- **类型转换：**Spring 会自动将路径变量从字符串转换为方法参数的目标类型。例如，`@PathVariable` 可以将字符串的 `id` 转换为 `Long` 类型。
+
+- 路径中的正则表达式：例如，限制 `id` 必须是数字。
+
+  ```java
+  // 路径变量 id 必须是一个数字（通过正则表达式 \\d+），否则请求将不会匹配该控制器方法。
+  @GetMapping("/users/{id:\\d+}")
+  public String getUserById(@PathVariable String id) {
+      return "User ID: " + id;
+  }
+  ```
+
+- 当路径变量包含特殊字符（如 `/`、`?` 等）时，这些字符需要进行 URL 编码。Spring 会自动处理路径变量的 URL 编码和解码过程。
+
+  ```
+  如果请求路径为 /products/hello%20mianshiya，productName 的值将会自动解码为 hello mianshiya。
+  ```
+
+  
+
+### @PathVariable 与 @RequestParam 的区别
+
+`@PathVariable` 和 `@RequestParam` 都是用于从 HTTP 请求中提取数据的注解，但它们的用法不同：
+
+- **`@PathVariable`**：从 **URL 路径**中提取动态数据，常用于 **RESTful URL 模式**。如 `/users/{id}`。
+- **`@RequestParam`**：从**请求的查询参数**中提取数据，通常用于处理**表单数据或查询参数**。如 `/users?id=1`。
+
+
+
+### 消息转换器（HttpMessageConverter）
+
+**常见的消息转换器**
+
+- **`MappingJackson2HttpMessageConverter`**：将 JSON 数据转换为 Java 对象，或将 Java 对象转换为 JSON 数据。默认使用 Jackson 库。
+
+- **`Jaxb2RootElementHttpMessageConverter`**：将 XML 数据转换为 Java 对象，或将 Java 对象转换为 XML 数据。
+
+- **`StringHttpMessageConverter`**：处理 `text/plain` 类型的请求和响应，将请求体转换为字符串。
+
+**自定义消息转换器**
+
+- 如果需要处理自定义格式的数据，可以通过实现 `HttpMessageConverter` 接口来自定义消息转换器。
+
+- ```java
+  @Configuration
+  public class WebConfig extends WebMvcConfigurerAdapter {
+      @Override
+      public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+          // 添加自定义的消息转换器
+          converters.add(new MyCustomMessageConverter());
+      }
+  }
+  ```
+
+  
 
 
 
@@ -608,7 +1181,15 @@ Spring Framework 默认使用的动态代理是 JDK 动态代理，SpringBoot 2.
 
 
 
+## 其他
 
+### DispatcherServlet的地位（角色）、作用
+
+### 配置MultipartResolver实现文件上传和下载
+
+### @EnableWebMVC 提供的默认配置和高级特性
+
+### 自定义WebMvcConfigurer
 
 
 
@@ -681,7 +1262,10 @@ Spring Framework 默认使用的动态代理是 JDK 动态代理，SpringBoot 2.
 `@Lazy` 延迟加载
 
 - **没有 `@Lazy` 的情况下**：在 Spring 容器初始化 `A` 时会立即尝试创建 `B`，而在创建 `B` 的过程中又会尝试创建 `A`，最终导致循环依赖。
+
 - **使用 `@Lazy` 的情况下**： A 的构造器上添加 `@Lazy` 注解之后（延迟 Bean B 的实例化），Spring 不会立即创建 `B`，而是会注入一个 `B` 的代理对象。由于此时 `B` 仍未被真正初始化，`A` 的初始化可以顺利完成。等到 `A` 实例实际调用 `B` 的方法时，代理对象才会触发 `B` 的真正初始化，在注入 B 中的 A 属性时，此时 A 已经创建完毕了，就可以将 A 给注入进去。
+
+
 
 
 
@@ -743,19 +1327,70 @@ Spring 提供了五种事务隔离级别`@Transactional(isolation = Isolation.XX
 
 
 
-❓@Transactional(rollbackFor = Exception.class)注解
+## Spring 事务在什么情况下会失效？ 
+
+一般而言失效的情况都是用了声明式事务即 @Transactional 注解，如果使用了这个注解那么在以下几个情况下会导致事务失效：
+
+1. **异常未被回滚。**rollbackFor 没设置对，比如默认没有任何设置（RuntimeException 或者 Error 才能捕获），则方法内抛出 IOException 则不会回滚，需要配置 `@Transactional(rollbackFor = Exception.class)`。
+2. **异常被捕获。**异常被捕获了，比如代码抛错，但是被 catch 了，仅打了 log 没有抛出异常，这样事务无法正常获取到错误，因此不会回滚。
+3. **同类方法直接调用。**同一个类中方法调用，因此事务是基于动态代理实现的，同类的方法调用不会走代理方法，因此事务自然就失效了。
+4. **非 public 方法。**事务仅适用于公共方法。@Transactional 应用在非 public 修饰的方法上，Spring 事务管理器判断非公共方法则不应用事务。
+5. **final 或 static 方法。**@Transactional 应用在 final 和 static 方法上，因为 aop （Spring Boot2.x版本默认是 cglib，Spring 自身默认是 jdk，一般现在用的都是 SpringBoot）默认是 cglib 代理，无法对 final 方法子类化。static 是静态方法，属于类，不属于实例对象，无法被代理！
+6. **事务隔离导致数据不一致。**propagation 传播机制配置错误，例如以下的代码（伪代码，忽略同一个类中的方法调用影响代理的情况）因为配置了 Propagation.REQUIRES_NEW，是新起了一个事务，即 addAddress 的事务和 addUserAndAddress 其实不是一个事务，因此两个事务之间当然就无法保证数据的一致性了。
+7. **线程上下文无法同步事务。**多线程环境，因为 @Transactional 是基于 ThreadLocal 存储上下文的，多线程情况下每个线程都有自己的上下文，那么之间如何保持事务同步？保持不了，因此事务失效。
+8. **不支持事务的引擎。**用的是MyISAM，这个引擎本身不支持事务!
 
 
 
 # Spring Data JPA（重在实战）
 
-如何使用 JPA 在数据库中非持久化一个字段？
+### JPA 是什么？
 
-JPA 的审计功能是做什么的？有什么用？
+JPA 是 Java 官方定义的**持久化规范**，用于将 Java 对象映射到数据库表中，并提供了与数据库进行交互的标准 API。JPA 是一种规范，不是一种具体的实现，它规定了如何定义实体类、如何与数据库交互，但它本身并不提供具体的实现。
 
-实体之间的关联关系注解有哪些？
+**JPA 的关键特性**：
+
+- **实体映射**：将 Java 类映射为数据库表。
+- **查询**：通过 JPQL（Java Persistence Query Language）编写查询语句。
+- **缓存管理**：提供一级缓存的支持。
+- **事务管理**：与数据库事务集成。
+
+JPA 的主要实现包括 Hibernate、EclipseLink 等。
 
 
+
+### JPA 和 Hibernate 有什么区别？
+
+- **Spring Data JPA**：是 Spring 框架的一个模块，提供了简化的 JPA 数据访问接口，并支持与不同 JPA 实现集成（包括 Hibernate）。它的目标是让开发者可以更加方便地进行 JPA 相关的操作。
+- **Hibernate**：是一个具体的 ORM 框架，**实现了 JPA 规范**，并在此基础上扩展了很多额外功能。Hibernate 是一个完整的 ORM 解决方案，Spring Data JPA 可以使用 Hibernate 作为其底层的 JPA 实现。
+
+
+
+### Spring Data JPA 的功能
+
+1. **Repository 接口。**在 Spring Data JPA 中，开发者不再需要手动编写 DAO 层代码，只需要定义一个接口继承 `JpaRepository` 或 `CrudRepository`，Spring Data JPA 会自动提供常见的 CRUD 操作实现。
+2. **方法名称推导查询。**Spring Data JPA 通过方法名解析机制，根据接口方法名称推导出相应的查询语句。开发者只需定义方法名，无需手动编写查询逻辑。
+3. **动态查询。**Spring Data JPA 还支持复杂的动态查询，通过 `@Query` 注解或 `Criteria API` 实现自定义查询。
+
+
+
+### Hibernate 的优势和功能扩展
+
+1. **HQL（Hibernate Query Language）。**Hibernate 提供了 HQL（Hibernate Query Language），它是一种面向对象的查询语言，支持通过实体类字段进行查询。HQL 比 JPQL 提供了更多的功能，并且直接与 Hibernate 的底层机制结合。
+2. **延迟加载。**Hibernate 支持延迟加载，即当访问到某个实体的关联对象时才从数据库中加载该对象的数据，提升性能。JPA 也支持延迟加载，但 Hibernate 提供了更多控制选项。
+3. **缓存机制。**Hibernate 提供了一级和二级缓存的支持。一级缓存是默认开启的，并且是与当前会话绑定的。二级缓存可以配置为应用级别的缓存，以提升查询性能。
+4. **批量操作和批量获取。**Hibernate 提供了批量插入、更新和删除操作的支持，帮助优化大批量数据操作的性能。开发者可以通过配置批量大小来优化这些操作。
+5. **自动生成数据库架构。**Hibernate 可以根据实体类的定义自动生成数据库表和外键关系，帮助开发者快速构建数据库结构。通过 `hibernate.hbm2ddl.auto` 配置项可以控制自动生成表结构的行为。
+
+
+
+### 其他
+
+- 如何使用 JPA 在数据库中非持久化一个字段？
+
+- JPA 的审计功能是做什么的？有什么用？
+
+- 实体之间的关联关系注解有哪些？
 
 # Spring Security
 
@@ -767,9 +1402,22 @@ JPA 的审计功能是做什么的？有什么用？
 
 
 
+# 范围之外
 
 
-# Spring父子容器
+
+## Spring MVC 中的国际化支持是如何实现的？ 
+
+主要通过 `LocaleResolver` 和 `ResourceBundleMessageSource` 实现，它可以根据用户的语言环境（Locale）来动态选择和显示对应语言的文本或内容，从而支持多语言的 Web 应用程序。
+
+1. **定义国际化资源文件**：使用 `messages.properties` 等资源文件来存储不同语言的文本内容。Spring MVC 会根据当前用户的 Locale（区域设置）加载对应的资源文件。
+2. **配置 `LocaleResolver`**：`LocaleResolver` 用于确定用户的语言环境（Locale），可以基于请求参数、会话、Cookie 等来解析用户的 Locale。
+3. **配置 `ResourceBundleMessageSource`**：Spring 使用 `ResourceBundleMessageSource` 来加载国际化资源文件，并根据用户的 Locale 返回相应的语言内容。
+4. **使用 `@RequestMapping` 或 Thymeleaf 等模板引擎的国际化标签来实现动态内容切换**。
+
+
+
+## Spring父子容器
 
 **父容器（管理Service层、DAO层）**：通常是 Spring 应用上下文（`ApplicationContext`），如 `ContextLoaderListener` 加载的根容器。它主要用于管理应用程序的全局 Bean，如服务层（Service）、数据访问层（DAO）等。
 
@@ -782,3 +1430,56 @@ JPA 的审计功能是做什么的？有什么用？
 - **Service层与 Web 层分离**：全局的 Bean，如数据库连接池、事务管理等，可以放在父容器中，而与 Web 相关的控制器放在子容器中。
 - **避免 Bean 重复定义**：例如，DAO的配置可以在父容器中定义，Web 层的配置可以在子容器中定义，这样可以防止冲突。
 - **分模块管理**
+
+
+
+## @Scheduled 注解的作用是什么？ 
+
+**主要作用：**
+
+- **定时任务执行**：`@Scheduled` 注解允许开发者定义一个方法，该方法会按照指定的时间规则定期执行。
+- **支持多种时间配置**：支持固定延迟、固定速率以及基于 Cron 表达式的任务调度。
+
+**使用场景：**
+
+- 自动备份数据或定时清理系统资源。
+- 定时发送通知或报告。
+- 定时同步数据，如从第三方服务中定期拉取数据。
+
+```java
+@Scheduled(fixedRate = 5000)  // 每隔 5 秒执行一次
+public void performTask() {
+    System.out.println("Task executed at: " + new Date());
+}
+```
+
+
+
+## @Cacheable 和 @CacheEvict 注解的作用是什么？ 
+
+1. **`@Cacheable`**：用于将方法的返回结果**缓存起**来。下次再调用相同参数的方法时，直接从缓存中获取结果，而不是重新执行该方法。
+2. **`@CacheEvict`**：用于从缓存中**移除**一项或多项数据，通常在更新或删除操作时使用，确保缓存中的数据保持一致性。
+
+
+
+
+
+## @EventListener 注解的作用是什么？ 
+
+用于监听和处理事件。通过标注在方法上，`@EventListener` 可以使方法自动监听特定类型的事件，并在事件发布时触发执行。
+
+- 当系统中某个状态变化时触发特定操作。
+- 日志记录、监控系统、通知系统等需要响应事件的模块。
+
+```java
+// 当 MyCustomEvent 事件被发布时，handleEvent() 方法会自动触发来处理该事件。.
+@Component
+public class MyEventListener {
+    @EventListener
+    public void handleEvent(MyCustomEvent event) {
+        System.out.println("Handling event: " + event.getMessage());
+    }
+}
+```
+
+事件监听相关扩展知识。
