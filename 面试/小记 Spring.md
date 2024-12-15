@@ -75,6 +75,37 @@
 
 
 
+## Spring国际化MessageSource
+
+
+
+### Spring框架中如何实现国际化（i18n）和本地化（l10n）？
+
+Spring 框架通过 `MessageSource` 接口实现国际化（i18n）和本地化（l10n），支持基于语言环境动态加载消息资源文件。结合 `LocaleResolver` 和 `@RequestMapping`，可根据用户的语言偏好或请求参数动态切换语言。
+
+**国际化与本地化的核心组件**
+
+1. **`MessageSource`**
+   - 用于加载和解析国际化资源文件（如 `messages_en.properties`、`messages_zh.properties`）。
+   - Spring 提供 `ResourceBundleMessageSource` 实现，支持从类路径加载资源文件。
+2. **`LocaleResolver`**
+   - 确定当前请求的语言环境（`Locale`）。
+   - 常用实现：`CookieLocaleResolver` 和 `SessionLocaleResolver`。
+
+
+
+### Spring框架中的消息源（MessageSource）是如何工作的？
+
+`MessageSource` 是 Spring 提供的国际化支持接口，用于加载和解析消息资源文件，动态返回对应语言环境（`Locale`）的消息。通过 `getMessage` 方法，开发者可以根据消息键（`code`）、参数（`args`）和语言环境（`Locale`）获取国际化消息。
+
+**`MessageSource` 的作用**
+Spring 的 `MessageSource` 接口定义了一种机制，用于根据语言环境（`Locale`）动态加载消息。
+- **主要功能：**
+	- 管理多语言资源文件（如 `messages_en.properties` 和 `messages_zh.properties`）。
+	- 根据用户语言偏好提供对应的消息内容。
+
+
+
 # 🍃Spring IoC
 
 
@@ -478,6 +509,12 @@ public class ShoppingCart {
 
 - **条件性 Bean**：在**某些条件下返回不同的 Bean 实例**，例如**根据应用的环境配置不同的数据库连接池或者日志框架实现**。
 
+#### BeanFactory和ApplicationContext的区别
+
+- **`BeanFactory`** 是 Spring 的基础 IoC 容器，提供 Bean 的创建与管理功能，延迟加载 Bean。
+- **`ApplicationContext`** 是 `BeanFactory` 的扩展，添加了国际化、事件发布、AOP 等高级功能，默认预加载所有单例 Bean。
+- 一般推荐使用 `ApplicationContext`，除非有资源受限的特殊需求。
+
 
 
 # 🍃Spring AOP
@@ -790,8 +827,8 @@ Spring Framework 默认使用的动态代理是 JDK 动态代理，SpringBoot 2.
 
 ### @ModelAttribute 数据绑定
 
-- **用于方法参数**：`@ModelAttribute` 注解可以用于控制器方法的参数上，表示将请求中的参数绑定到某个对象上，并将其添加到模型（`Model`）中，便于在视图层访问。处理表单提交时，将多个请求参数绑定到一个对象。
-- **用于方法级别**：`@ModelAttribute` 注解也可以用在控制器方法上，表示在执行任何控制器方法之前，先运行带有该注解的方法，用来为视图模型添加预处理的数据。准备通用的模型数据（如下拉列表、表单数据等），以便在视图中共享这些数据。
+- **用于方法参数**：将请求中的参数绑定到模型对象，并直接作为方法参数传入控制器方法。应用：处理表单提交时，将多个请求参数绑定到一个对象。
+- **用于方法级别**：在控制器方法执行前，预先填充模型数据，将返回值加入到模型中供视图使用。应用：准备通用的模型数据（如下拉列表、表单数据等），以便在视图中共享这些数据。
 
 #### @ModelAttribute 和 @RequestParam 的区别
 
@@ -804,6 +841,8 @@ Spring Framework 默认使用的动态代理是 JDK 动态代理，SpringBoot 2.
 
 - `@ModelAttribute` 是基于传统的表单参数和 URL 请求参数进行数据绑定。
 - `@RequestBody` 是用于处理 HTTP 请求体中的 JSON 或 XML 数据。
+
+
 
 ### @Validated 和 @Valid 数据校验
 
@@ -852,6 +891,15 @@ public class UserController {
     }
 }
 ```
+
+
+
+### 自定义 PropertyEditor 
+
+自定义 `PropertyEditor` 用于扩展 Spring 的数据绑定机制，适配特殊的数据类型转换。实现步骤：
+1. **实现 `PropertyEditorSupport` 子类**：定义转换逻辑。
+2. **注册 `PropertyEditor`**：通过 `@InitBinder` 方法将自定义的 `PropertyEditor` 注册到 `WebDataBinder` 中。
+3. **使用自定义类型**：自动将请求参数绑定到目标对象的复杂类型字段。
 
 
 
@@ -1295,6 +1343,15 @@ Spring 提供了五种事务隔离级别`@Transactional(isolation = Isolation.XX
 
 
 
+## JTA（Java Transaction API）进行分布式事务管理
+
+JTA（Java Transaction API）是一种标准的事务管理 API，用于分布式事务管理。Spring 通过 `PlatformTransactionManager` 和 JTA 的实现（如 Atomikos、Bitronix 或 JTA 的默认实现）支持分布式事务。配置步骤：
+1. 配置 JTA 事务管理器（如 Atomikos）。
+2. 设置 `JtaTransactionManager` 并整合数据源。
+3. 在代码中通过注解（`@Transactional`）或编程方式管理分布式事务。
+
+
+
 # Spring Data JPA（重在实战）
 
 JPA 是 Java 官方定义的**持久化规范**，用于将 Java 对象映射到数据库表中，并提供了与数据库进行交互的标准 API。JPA 是一种规范，不是一种具体的实现，它规定了如何定义实体类、如何与数据库交互，但它本身并不提供具体的实现。
@@ -1410,10 +1467,19 @@ public void performTask() {
 
 
 
-## @Cacheable 和 @CacheEvict 注解的作用是什么？ 
+## Spring框架中的@Cacheable、@CachePut、@CacheEvict注解的作用是什么？如何配置Spring Cache？
 
-1. **`@Cacheable`**：用于将方法的返回结果**缓存起**来。下次再调用相同参数的方法时，直接从缓存中获取结果，而不是重新执行该方法。
-2. **`@CacheEvict`**：用于从缓存中**移除**一项或多项数据，通常在更新或删除操作时使用，确保缓存中的数据保持一致性。
+- **`@Cacheable`**：方法执行前检查缓存，若存在缓存数据则直接返回，否则执行方法并将结果缓存。
+- **`@CachePut`**：每次执行方法并将结果更新到缓存中。
+- **`@CacheEvict`**：用于移除缓存数据，可清除单个或多个缓存条目。
+
+
+
+**配置 Spring Cache：**
+
+1. 启用缓存：使用 `@EnableCaching`。
+2. 配置缓存实现（如 ConcurrentMap、Redis、EhCache）。
+3. 使用注解标记缓存逻辑。
 
 
 
