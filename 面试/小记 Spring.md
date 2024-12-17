@@ -413,7 +413,7 @@ public class ShoppingCart {
    4. **BeanPostProcessor#postProcessAfterInitialization**：在 Bean 初始化后，进一步修改或替换 Bean 实例。
 
 4. **使用**
-5. **销毁：**如果 Bean 实现了 `DisposableBean接口的destroy()方法` 或使用了 `@PreDestroy` 注解，Spring 会在**容器关闭时**调用销毁方法。
+5. **销毁：**如果 Bean 实现了 `DisposableBean接口的destroy()方法` 或使用了 `@PreDestroy` 注解，Spring 会在**容器关闭时**调用销毁方法。常用于进行资源释放（关闭数据库连接、文件句柄、线程池）、会话管理（清理用户会话或缓存）
 
    注意：容器关闭时才调用销毁逻辑，所以看不到，要想看到destroy-method执行：
    1. 暴力手动关闭：在JVM结束前通过`ClassPathXmlApplication接口close()方法`关闭容器
@@ -421,99 +421,33 @@ public class ShoppingCart {
 
 
 
-### 生命周期的应用
-
-1. **连接池管理**：在初始化阶段创建数据库连接池，在销毁阶段关闭连接池，以确保资源的有效管理。
-
-2. **缓存初始化**：在 `afterPropertiesSet` 或 `@PostConstruct` 中加载缓存数据，在销毁阶段清理缓存。
-
-3. **动态代理创建**：在 `postProcessBeforeInitialization` 中为 Bean 创建动态代理，以实现 AOP 功能。
-
-
-
 ### 生命周期的相关问题
-
-#### 实例化、依赖注入、初始化的基本流程
-
-1. **启动阶段：**
-
-   - 配置加载：加载配置文件或配置类，IoC 容器首先需要加载应用程序的配置信息，这些配置信息可以是 XML 配置文件、Java 配置类或注解配置等方式。
-
-   - 创建容器：Spring 创建 IOC 容器（BeanFactory 、 ApplicationContext），准备加载和管理 Bean。
-
-   - > 细节：
-     >
-     > - 配置文件解析：Spring 使用 XmlBeanDefinitionReader 解析 XML 配置文件，使用 AnnotatedBeanDefinitionReader 解析注解配置类。
-     > - 上下文初始化：是通过创建具体的 ApplicationContext 实现（如 ClassPathXmlApplicationContext、AnnotationConfigApplicationContext），调用其 refresh 方法启动容器。
-
-2. **Bean 定义注册阶段：**
-
-   - 解析和注册：BeanDefinitionReader 读取解析配置中的 Bean 定义，并将其注册到容器中，形成 BeanDefinition 对象。
-
-   - > 细节：
-     >
-     > - BeanDefinition：每个 BeanDefinition 对象包含 Bean 的类名、作用域（singleton/prototype）、依赖关系、初始化方法、销毁方法等信息。
-     > - BeanDefinitionRegistry：Spring 将 BeanDefinition 对象注册到 BeanDefinitionRegistry，形成 Bean 的定义数据结构。
-
-3. **实例化和依赖注入：**
-
-   - 实例化：根据 BeanDefinition 创建 Bean 的实例。
-
-   - 依赖注入：根据 BeanDefinition 中的依赖关系，可以通过构造函数注入、Setter 注入或字段注入，将依赖注入到 Bean 中。
-
-   - > 细节：
-     >
-     > - 实例化策略：Spring 使用 InstantiationStrategy 接口来实例化 Bean，常用的实现是 CglibSubclassingInstantiationStrategy。（还有一个是jdk的）
-     > - 依赖解析：Spring 通过 DependencyDescriptor 对象描述依赖项，并在容器中查找匹配的 Bean 进行注入。
-
-4. **初始化：**
-
-   - BeanPostProcessor 处理：这些处理器会在 Bean 初始化生命周期中加入定义的处理逻辑，postProcessBeforeInitialization 和 postProcessAfterInitialization 分别在 Bean 初始化前后被调用。
-
-   - Aware 接口调用：如果 Bean 实现了 Aware 接口（如 BeanNameAware、BeanFactoryAware），Spring 会回调这些接口，传递容器相关信息。
-
-   - 初始化方法调用：调用 Bean 的初始化方法（如通过 @PostConstruct 注解标注的方法，或实现 InitializingBean 接口的 bean 会被调用 afterPropertiesSet 方法）。
-
-#### 初始化方法的执行顺序
-
-1. BeanPostProcessor#postProcessBeforeInitialization
-2. @PostConstruct
-3. InitializingBean#afterPropertiesSet
-
-4. initMethod
-
-5. BeanPostProcessor#postProcessAfterInitialization。
-
-#### @PostConstruct 和 @PreDestroy 的区别
-
-- **`@PostConstruct`**：当依赖注入完成后，在 Bean 初始化完成后调用。常用于设置默认值、检查依赖。
-- **`@PreDestroy`**：在 Bean 即将被销毁时调用。常用于进行资源释放（关闭数据库连接、文件句柄、线程池）、会话管理（清理用户会话或缓存）。
-  - 对于单例（`singleton`）作用域的 Bean，会在容器关闭时调用；
-  - 对于原型（`prototype`）作用域的 Bean，不会调用销毁方法，因为容器不管理其生命周期。
 
 #### ❓初始化`Aware` 接口的依赖注入
 
-#### BeanFactory和FactoryBean的区别
+#### BeanFactory、ApplicationContext、FactoryBean的区别
 
-**BeanFactory**是 **IOC 的底层容器**，负责从配置源中读取 Bean 的定义，并负责创建、管理这些 Bean 的生命周期。一个重要特性是**延迟初始化**，即它只会在 Bean 首次请求时才会实例化该 Bean，而不是在容器启动时就立即创建所有的 Bean。接口的实现类：
+- **BeanFactory**是 是 Spring 的基础 IoC 容器，提供 Bean 的创建与管理功能，延迟加载 Bean。
 
-- **DefaultListableBeanFactory**：BeanFactory 的默认实现，支持所有基本的依赖注入特性，如构造器注入、setter 注入等。
+  - **DefaultListableBeanFactory**：BeanFactory 的默认实现，支持所有基本的依赖注入特性，如构造器注入、setter 注入等。
 
-- **XmlBeanFactory（已废弃）**：已经在 Spring 3.x 中被淘汰，现推荐使用 ApplicationContext。
 
-**FactoryBean**：通过自定义的 `getObject()` 方法创建对象。使用场景：
+  - **XmlBeanFactory（已废弃）**：已经在 Spring 3.x 中被淘汰，现推荐使用 ApplicationContext。
 
-- **复杂对象创建**：如果某个 Bean 的创建过程比较复杂，比如需要**动态加载配置文件**或**执行其他逻辑**才能实例化对象。
+- **ApplicationContext（推荐）** ：是 BeanFactory 的扩展，添加了**国际化、事件发布、AOP** 等高级功能，默认**预加载所有单例 Bean。**
 
-- **代理对象生成**：Spring AOP 使用 FactoryBean 来生成代理对象，使得 AOP 切面能够透明地应用于目标对象。
+  - ClassPathXmlApplicationContext#refresh
 
-- **条件性 Bean**：在**某些条件下返回不同的 Bean 实例**，例如**根据应用的环境配置不同的数据库连接池或者日志框架实现**。
+- **FactoryBean**：通过自定义的 `getObject()` 方法创建对象。使用场景：
 
-#### BeanFactory和ApplicationContext的区别
+  - **复杂对象创建**：如果某个 Bean需要**动态加载配置文件**或**执行其他逻辑**才能实例化对象。
 
-- **`BeanFactory`** 是 Spring 的基础 IoC 容器，提供 Bean 的创建与管理功能，延迟加载 Bean。
-- **`ApplicationContext`** 是 `BeanFactory` 的扩展，添加了国际化、事件发布、AOP 等高级功能，默认预加载所有单例 Bean。
-- 一般推荐使用 `ApplicationContext`，除非有资源受限的特殊需求。
+
+  - **代理对象生成**：AOP 使用 FactoryBean 生成代理对象。
+
+
+  - **条件性 Bean**：**根据应用的环境配置不同的数据库连接池或者日志框架实现**。
+
 
 
 
