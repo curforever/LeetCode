@@ -327,7 +327,7 @@ public class AppConfig {
     @Bean
     @Conditional(OnLinuxCondition.class)
     public MyService myService() {
-        return new MyService();
+        return new MyService
     }
 }
 ```
@@ -617,10 +617,6 @@ Spring Framework 默认使用的动态代理是 JDK 动态代理，SpringBoot 2.
   - **类加载时织入**：通过 AspectJ 提供的 `javaagent` 在类加载时织入切面逻辑。
   - **运行时织入**：支持动态代理，但主要在特殊场景下使用。
 - **使用场景**：适合对性能要求较高或需要复杂切点匹配的场景，如日志、监控等。
-
-
-
-## ❓多个切面的执行顺序如何控制
 
 
 
