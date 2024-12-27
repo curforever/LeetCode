@@ -780,7 +780,7 @@ public String getUserProfile(@SessionAttribute("loggedInUser") User user) {
 
 
 
-### 数据一致性问题
+## 数据一致性问题
 
 - **脏读（Dirty Read）**：读取了**尚未提交的事务的数据**，如果回滚，则不一致。
 - **不可重复读（Non-repeatable Read）**：多次读取前后**数据**不一致，因为其他事务**修改并提交了**该数据。
@@ -914,14 +914,6 @@ JPA是规范，Hibernate 是一个完整的 ORM 解决方案，JPA 可以使用 
 
 
 
-
-
-
-
-# Spring Security
-
-
-
 ### Spring Data JPA 扩展知识
 
 - 控制请求访问权限的方法
@@ -929,6 +921,10 @@ JPA是规范，Hibernate 是一个完整的 ORM 解决方案，JPA 可以使用 
 
 - 如何对密码进行加密？
 - 如何优雅更换系统使用的加密算法？
+
+
+
+# Spring Security
 
 
 
