@@ -1,0 +1,9 @@
+Bilateral Virtual Companions The Impact of Virtual Humans' Movement and Voice Realism on User Perception and Experience in Multi-user VR Cinemas
+
+IF 
+
+2025.02.05
+
+Despite the increasing prevalence of online social interaction, challenges such as insufficient immersion and lack of interactivity still persist. To overcome these limitations, this study developed a multi-user virtual reality (VR) cinema system with motion capture (Mocap) and multi-user VR technology. The system demonstrated strengths in overcoming physical space restrictions and saving travel costs, providing a more enriched interactive experience and fulfilling social needs under special circumstances, and facilitating metaverse applications. Furthermore, to give insight into the further design of multi-user VR cinemas, this study investigated the impact of virtual humans' (VHs') characteristics on user perception and experience of bilateral virtual companions, by evaluating the impact of movement and voice realism on immersion, social presence and intimacy. The results show that while neither movement nor voice realism significantly influences immersion, voice realism rather than movement realism significantly affects social presence and intimacy.
+
+尽管在线社交日益盛行，但沉浸感不足、互动性不足等挑战依然存在。为了克服这些限制，本研究开发了一种多人虚拟现实影院系统，该系统结合动作捕捉和多人VR技术。该系统在克服物理空间限制和节省旅行成本、提供更丰富的交互体验和满足特殊情况下的社交需求、促进元宇宙应用方面表现出色。此外，为了深入了解多人VR影院，本研究通过评估运动和语音真实感对沉浸感、社交临场感和亲密感的影响，研究了虚拟人特征对用户对双边虚拟伴侣的感知和体验的影响。结果表明，虽然动作和语音真实感都不会显著影响沉浸感，但相比动作真实感，语音真实感对社交临场感和亲密感的影响更显著。
