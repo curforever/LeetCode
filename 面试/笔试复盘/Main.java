@@ -1,6 +1,6 @@
 // 双线程交替打印1-100（奇偶分开）
 
-public class AlternatePrint {
+public class Main {
     private static int number = 1;
     private static final int MAX = 100;
     private static final Object lock = new Object();
